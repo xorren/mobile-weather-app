@@ -1,112 +1,86 @@
 package com.example.mobile_weatherapp;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
-import android.location.Address;
-import android.location.Geocoder;
-import android.location.Location;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.util.Log;
 import android.widget.TextView;
-import android.widget.Toast;
-import androidx.annotation.NonNull;
+
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+import org.json.JSONException;
+
 import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "MainActivity";
+
+    private String date = "", time = "";
+    private String x = "60", y = "127";
+    private String weather = "";
     private TextView currentWeather;
-    private FusedLocationProviderClient fusedLocationClient;
-    private LocationCallback locationCallback;
-    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
+
+        /*
+        현재 날씨 알림 ---------------------------------------------------------------
+         */
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
         currentWeather = findViewById(R.id.currentWeather);
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        long now = System.currentTimeMillis();
+        Date mDate = new Date(now);
 
-        locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) {
-                    return;
-                }
-                for (Location location : locationResult.getLocations()) {
-                    if (location != null) {
-                        Log.d(TAG, "Location: " + location.getLatitude() + ", " + location.getLongitude());
-                        getCityName(location);
-                    }
-                }
-            }
-        };
+        // 날짜, 시간의 형식 설정
+        SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("yyyyMMdd");
+        SimpleDateFormat simpleDateFormat2 = new SimpleDateFormat("HH");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM");
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        } else {
-            startLocationUpdates();
-        }
-    }
+        // 현재 날짜를 받아오는 형식 설정 ex) 20221121
+        String getDate = simpleDateFormat1.format(mDate);
+        // 현재 시간를 받아오는 형식 설정, 시간만 가져오고 WeatherData의 timechange()를 사용하기 위해 시간만 가져오고 뒤에 00을 붙임 ex) 02 + "00"
+        String getTime = simpleDateFormat2.format(mDate) + "00";
+        String CurrentTime = simpleDateFormat2.format(mDate) + ":00";
+        Log.d("date", getDate + getTime);
+        // 현재 월 가져오기 봄 = 3월 ~ 5월 / 여름 = 6월 ~ 8월 / 가을 = 9월, 10월 / 겨울 = 11월 ~ 2월
+        String getSeason = simpleDateFormat.format(mDate);
 
-    private void startLocationUpdates() {
-        LocationRequest locationRequest = LocationRequest.create();
-        locationRequest.setInterval(5000); // 5초마다 업데이트
-        locationRequest.setFastestInterval(2000); // 2초마다 업데이트
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setSmallestDisplacement(10); // 10미터마다 업데이트
-
+        WeatherData wd = new WeatherData();
         try {
-            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void getCityName(Location location) {
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-        try {
-            List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-            if (addresses != null && !addresses.isEmpty()) {
-                String cityName = addresses.get(0).getLocality();
-                currentWeather.setText("지역: " + cityName);
-            } else {
-                currentWeather.setText("지역 이름을 찾을 수 없습니다.");
-            }
+            date = getDate;
+            time = getTime;
+            weather = wd.lookUpWeather(date, time, x, y);
         } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "도시 이름을 가져올 수 없습니다.", Toast.LENGTH_SHORT).show();
+            Log.i("THREE_ERROR1", e.getMessage());
+        } catch (JSONException e) {
+            Log.i("THREE_ERROR2", e.getMessage());
         }
-    }
+        Log.d("현재날씨",weather);
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startLocationUpdates();
-            } else {
-                Toast.makeText(this, "위치 권한이 필요합니다.", Toast.LENGTH_SHORT).show();
-            }
+        // return한 값을 " " 기준으로 자른 후 배열에 추가
+        // array[0] = 구름의 양, array[1] = 강수 확률, array[2] = 기온, array[3] = 풍속, array[4] = 적설량, array[5] = 습도
+        String[] weatherarray = weather.split(" ");
+        for(int i = 0; i < weatherarray.length; i++) {
+            Log.d("weather = ", i + " " + weatherarray[i]);
         }
-    }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        fusedLocationClient.removeLocationUpdates(locationCallback);
+        currentWeather.setText("현재 날씨 : " + weatherarray[0]);
+
     }
 }
