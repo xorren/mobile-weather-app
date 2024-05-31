@@ -45,20 +45,18 @@ public class MainActivity extends AppCompatActivity {
         forecast4 = findViewById(R.id.forecast4);
         forecast5 = findViewById(R.id.forecast5);
 
-        double latitude = 37.5665; // Seoul latitude
-        double longitude = 126.9780; // Seoul longitude
+        String city = "Seoul,kr";
 
-        new FetchWeatherTask().execute(latitude, longitude);
-        new FetchForecastTask().execute(latitude, longitude);
+        new FetchWeatherTask().execute(city);
+        new FetchForecastTask().execute(city);
     }
 
-    private class FetchWeatherTask extends AsyncTask<Double, Void, String> {
+    private class FetchWeatherTask extends AsyncTask<String, Void, String> {
         @Override
-        protected String doInBackground(Double... params) {
-            double lat = params[0];
-            double lon = params[1];
+        protected String doInBackground(String... params) {
+            String city = params[0];
             try {
-                return lookUpWeather(lat, lon);
+                return lookUpWeather(city);
             } catch (IOException | JSONException e) {
                 Log.e("FetchWeatherTask", "Error fetching weather data", e);
                 return null;
@@ -74,9 +72,9 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        private String lookUpWeather(double lat, double lon) throws IOException, JSONException {
+        private String lookUpWeather(String city) throws IOException, JSONException {
             String apiKey = "be30d0417182e4188259fd1a1bf395fe"; // Replace with your actual API key
-            String urlStr = "https://api.openweathermap.org/data/3.0/onecall?lat=" + lat + "&lon=" + lon + "&exclude=minutely,hourly,daily,alerts&appid=" + apiKey + "&units=metric&lang=kr";
+            String urlStr = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&APPID=" + apiKey + "&units=metric&lang=kr";
             URL url = new URL(urlStr);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
@@ -95,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
                 urlConnection.disconnect();
                 Log.d("FetchWeatherTask", "Weather data: " + content.toString());
                 JSONObject jsonObject = new JSONObject(content.toString());
-                return jsonObject.getJSONObject("current").getJSONArray("weather").getJSONObject(0).getString("description");
+                return jsonObject.getJSONArray("weather").getJSONObject(0).getString("description");
             } else {
                 BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getErrorStream()));
                 String inputLine;
@@ -111,13 +109,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class FetchForecastTask extends AsyncTask<Double, Void, List<ForecastModel>> {
+    private class FetchForecastTask extends AsyncTask<String, Void, List<ForecastModel>> {
         @Override
-        protected List<ForecastModel> doInBackground(Double... params) {
-            double lat = params[0];
-            double lon = params[1];
+        protected List<ForecastModel> doInBackground(String... params) {
+            String city = params[0];
             try {
-                return lookUpForecast(lat, lon);
+                return lookUpForecast(city);
             } catch (IOException | JSONException e) {
                 Log.e("FetchForecastTask", "Error fetching forecast data", e);
                 return null;
@@ -141,9 +138,9 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        private List<ForecastModel> lookUpForecast(double lat, double lon) throws IOException, JSONException {
+        private List<ForecastModel> lookUpForecast(String city) throws IOException, JSONException {
             String apiKey = "be30d0417182e4188259fd1a1bf395fe"; // Replace with your actual API key
-            String urlStr = "https://api.openweathermap.org/data/3.0/onecall?lat=" + lat + "&lon=" + lon + "&exclude=current,minutely,hourly,alerts&appid=" + apiKey + "&units=metric&lang=kr";
+            String urlStr = "https://api.openweathermap.org/data/2.5/forecast?q=" + city + "&appid=" + apiKey + "&units=metric&lang=kr";
             URL url = new URL(urlStr);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
@@ -163,13 +160,13 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("FetchForecastTask", "Forecast data: " + content.toString());
                 JSONObject jsonObject = new JSONObject(content.toString());
                 List<ForecastModel> forecastList = new ArrayList<>();
-                JSONArray daily = jsonObject.getJSONArray("daily");
-                for (int i = 0; i < daily.length(); i++) {
-                    JSONObject day = daily.getJSONObject(i);
+                JSONArray list = jsonObject.getJSONArray("list");
+                for (int i = 0; i < list.length(); i += 8) { // 하루 간격으로 데이터 선택
+                    JSONObject forecastObject = list.getJSONObject(i);
                     ForecastModel forecast = new ForecastModel();
-                    forecast.setDate(day.getString("dt"));
-                    forecast.setTemperature(day.getJSONObject("temp").getDouble("day"));
-                    forecast.setDescription(day.getJSONArray("weather").getJSONObject(0).getString("description"));
+                    forecast.setDate(forecastObject.getString("dt_txt"));
+                    forecast.setTemperature(forecastObject.getJSONObject("main").getDouble("temp"));
+                    forecast.setDescription(forecastObject.getJSONArray("weather").getJSONObject(0).getString("description"));
                     forecastList.add(forecast);
                 }
                 return forecastList;
