@@ -1,4 +1,5 @@
 package com.example.mobile_weatherapp;
+
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,6 +10,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,13 +33,15 @@ import java.util.Locale;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 
 public class MainActivity extends AppCompatActivity {
     private TextView currentWeather, currentTemperature, location;
     private ImageView weatherIcon;
     private TextView forecastDay1, forecastTemp1, forecastDay2, forecastTemp2, forecastDay3, forecastTemp3, forecastDay4, forecastTemp4, forecastDay5, forecastTemp5;
     private ImageView forecastIcon1, forecastIcon2, forecastIcon3, forecastIcon4, forecastIcon5;
+    private LineChart lineChart;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
         forecastDay5 = findViewById(R.id.forecastDay5);
         forecastTemp5 = findViewById(R.id.forecastTemp5);
         forecastIcon5 = findViewById(R.id.forecastIcon5);
+        lineChart = findViewById(R.id.lineChart);
 
         String city = "Seoul,kr";
 
@@ -92,7 +103,6 @@ public class MainActivity extends AppCompatActivity {
                 currentWeather.setText("날씨 데이터를 불러올 수 없습니다.");
             }
         }
-
 
         private WeatherData lookUpWeather(String city) throws IOException, JSONException {
             String apiKey = "be30d0417182e4188259fd1a1bf395fe"; // Replace with your actual API key
@@ -150,17 +160,27 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(List<ForecastModel> forecastList) {
             if (forecastList != null && forecastList.size() >= 5) {
                 updateForecast(forecastList);
+                setupChart(forecastList); // 그래프 설정 기능 추가
             } else {
+                // 에러 처리
                 forecastDay1.setText("예보 데이터를 불러올 수 없습니다.");
                 forecastTemp1.setText("");
+                forecastIcon1.setImageResource(R.drawable.ic_error); // 기본 에러 아이콘 설정
                 forecastDay2.setText("");
                 forecastTemp2.setText("");
+                forecastIcon2.setImageResource(R.drawable.ic_error);
                 forecastDay3.setText("");
                 forecastTemp3.setText("");
+                forecastIcon3.setImageResource(R.drawable.ic_error);
                 forecastDay4.setText("");
                 forecastTemp4.setText("");
+                forecastIcon4.setImageResource(R.drawable.ic_error);
                 forecastDay5.setText("");
                 forecastTemp5.setText("");
+                forecastIcon5.setImageResource(R.drawable.ic_error);
+
+                // 그래프 초기화
+                lineChart.clear();
             }
         }
 
@@ -189,6 +209,7 @@ public class MainActivity extends AppCompatActivity {
                 JSONArray list = jsonObject.getJSONArray("list");
                 for (int i = 0; i < list.length(); i += 8) { // 하루 간격으로 데이터 선택
                     JSONObject forecastObject = list.getJSONObject(i);
+
                     ForecastModel forecast = new ForecastModel();
                     forecast.setDate(forecastObject.getString("dt_txt"));
                     forecast.setTemperature(forecastObject.getJSONObject("main").getDouble("temp"));
@@ -211,36 +232,62 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        private void updateForecast(List<ForecastModel> forecastList) {
-            setForecastData(forecastList.get(0), forecastDay1, forecastTemp1, forecastIcon1);
-            setForecastData(forecastList.get(1), forecastDay2, forecastTemp2, forecastIcon2);
-            setForecastData(forecastList.get(2), forecastDay3, forecastTemp3, forecastIcon3);
-            setForecastData(forecastList.get(3), forecastDay4, forecastTemp4, forecastIcon4);
-            setForecastData(forecastList.get(4), forecastDay5, forecastTemp5, forecastIcon5);
-        }
-
-        private void setForecastData(ForecastModel forecast, TextView day, TextView temp, ImageView icon) {
-            day.setText(formatDate(forecast.getDate()));
-            temp.setText(String.format("+%.0f°C", forecast.getTemperature()));
-            int iconResource = getResources().getIdentifier("ic_" + forecast.getIcon(), "drawable", getPackageName());
-            icon.setImageResource(iconResource);
-        }
-
-
-
-
-        private String formatDate(String dateStr) {
+        private void setupChart(List<ForecastModel> forecastList) {
+            List<Entry> entries = new ArrayList<>();
+            List<String> dates = new ArrayList<>();
             SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             SimpleDateFormat outputFormat = new SimpleDateFormat("MM월 dd일", Locale.getDefault());
-            try {
-                Date date = inputFormat.parse(dateStr);
-                return outputFormat.format(date);
-            } catch (ParseException e) {
-                e.printStackTrace();
-                return dateStr;
+
+            for (int i = 0; i < forecastList.size(); i++) {
+                ForecastModel forecast = forecastList.get(i);
+                entries.add(new Entry(i, (float) forecast.getTemperature()));
+                try {
+                    Date date = inputFormat.parse(forecast.getDate());
+                    dates.add(outputFormat.format(date));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
             }
+
+            LineDataSet dataSet = new LineDataSet(entries, "Temperature");
+            LineData lineData = new LineData(dataSet);
+            lineChart.setData(lineData);
+
+            XAxis xAxis = lineChart.getXAxis();
+            xAxis.setValueFormatter(new DateValueFormatter(dates));
+            xAxis.setGranularity(1f); // 최소 간격을 설정하여 날짜가 올바르게 표시되도록 함
+            xAxis.setPosition(XAxis.XAxisPosition.BOTTOM); // X축을 아래에 표시
+
+            lineChart.invalidate(); // refresh
         }
 
+    }
+
+    private void updateForecast(List<ForecastModel> forecastList) {
+        setForecastData(forecastList.get(0), forecastDay1, forecastTemp1, forecastIcon1);
+        setForecastData(forecastList.get(1), forecastDay2, forecastTemp2, forecastIcon2);
+        setForecastData(forecastList.get(2), forecastDay3, forecastTemp3, forecastIcon3);
+        setForecastData(forecastList.get(3), forecastDay4, forecastTemp4, forecastIcon4);
+        setForecastData(forecastList.get(4), forecastDay5, forecastTemp5, forecastIcon5);
+    }
+
+    private void setForecastData(ForecastModel forecast, TextView day, TextView temp, ImageView icon) {
+        day.setText(formatDate(forecast.getDate()));
+        temp.setText(String.format("+%.0f°C", forecast.getTemperature()));
+        int iconResource = getResources().getIdentifier("ic_" + forecast.getIcon(), "drawable", getPackageName());
+        icon.setImageResource(iconResource);
+    }
+
+    private String formatDate(String dateStr) {
+        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        SimpleDateFormat outputFormat = new SimpleDateFormat("MM월 dd일", Locale.getDefault());
+        try {
+            Date date = inputFormat.parse(dateStr);
+            return outputFormat.format(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return dateStr;
+        }
     }
 
     private class WeatherData {
@@ -252,6 +299,19 @@ public class MainActivity extends AppCompatActivity {
             this.description = description;
             this.temperature = temperature;
             this.icon = icon;
+        }
+    }
+    public class DateValueFormatter extends ValueFormatter {
+        private final List<String> dates;
+
+        public DateValueFormatter(List<String> dates) {
+            this.dates = dates;
+        }
+
+        @Override
+        public String getFormattedValue(float value) {
+            int index = (int) value;
+            return dates.get(index);
         }
     }
 

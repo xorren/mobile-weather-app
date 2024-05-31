@@ -26,8 +26,7 @@
         android:layout_below="@id/location"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp"
-        android:src="@drawable/ic_weather"
-        />
+        android:src="@drawable/ic_weather"/>
 
     <TextView
         android:id="@+id/currentTemperature"
@@ -236,4 +235,15 @@
                 android:text="+12°C"/>
         </LinearLayout>
     </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/forecastContainer"
+        android:layout_marginTop="16dp">
+        <com.github.mikephil.charting.charts.LineChart
+            android:id="@+id/lineChart"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"/>
+    </RelativeLayout>
 </RelativeLayout>
