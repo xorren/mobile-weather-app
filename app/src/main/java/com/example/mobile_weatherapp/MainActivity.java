@@ -3,7 +3,6 @@ package com.example.mobile_weatherapp;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
-import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -36,24 +35,6 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        Button main_button = (Button) findViewById(R.id.main_button);
-
-//        Button search_button = (Button) findViewById(R.id.search_button);
-//        search_button.setOnClickListener(v -> {
-//            Intent intent = new Intent(MainActivity.this, SearchActivity.class);
-//            startActivity(intent);
-//        });
-//
-//        Button mypage_button = (Button) findViewById(R.id.mypage_button);
-//        mypage_button.setOnClickListener(v -> {
-//            Intent intent = new Intent(MainActivity.this, MypageActivity.class);
-//            startActivity(intent);
-//        });
-//        Button recommend_button = (Button) findViewById(R.id.recommend_button);
-//        recommend_button.setOnClickListener(v -> {
-//            Intent intent = new Intent(MainActivity.this, RecommendActivity.class);
-//            startActivity(intent);
-//        });
 
         /*
         현재 날씨 알림 ---------------------------------------------------------------
