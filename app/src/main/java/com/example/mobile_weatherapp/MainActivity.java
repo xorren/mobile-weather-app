@@ -1,14 +1,28 @@
 package com.example.mobile_weatherapp;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
+
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,6 +38,12 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private LocationManager locationManager;
+    private TextView currentLocationTextView;
+    private TextView currentWeatherTextView;
+    private RequestQueue requestQueue;
+
     private TextView currentWeather;
     private TextView forecast1, forecast2, forecast3, forecast4, forecast5;
 
@@ -32,11 +52,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        currentLocationTextView = findViewById(R.id.currentLocation);
+        currentWeatherTextView = findViewById(R.id.currentWeather);
+        requestQueue = Volley.newRequestQueue(this);
+
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        getLocationPermission();
 
         currentWeather = findViewById(R.id.currentWeather);
         forecast1 = findViewById(R.id.forecast1);
@@ -45,8 +66,8 @@ public class MainActivity extends AppCompatActivity {
         forecast4 = findViewById(R.id.forecast4);
         forecast5 = findViewById(R.id.forecast5);
 
+        // 기본 도시로 서울 설정
         String city = "Seoul,kr";
-
         new FetchWeatherTask().execute(city);
         new FetchForecastTask().execute(city);
     }
@@ -73,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         private String lookUpWeather(String city) throws IOException, JSONException {
-            String apiKey = "be30d0417182e4188259fd1a1bf395fe"; // Replace with your actual API key
+            String apiKey = "be30d0417182e4188259fd1a1bf395fe"; // 실제 API 키로 교체하세요
             String urlStr = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&APPID=" + apiKey + "&units=metric&lang=kr";
             URL url = new URL(urlStr);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -139,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         private List<ForecastModel> lookUpForecast(String city) throws IOException, JSONException {
-            String apiKey = "be30d0417182e4188259fd1a1bf395fe"; // Replace with your actual API key
+            String apiKey = "be30d0417182e4188259fd1a1bf395fe"; // 실제 API 키로 교체하세요
             String urlStr = "https://api.openweathermap.org/data/2.5/forecast?q=" + city + "&appid=" + apiKey + "&units=metric&lang=kr";
             URL url = new URL(urlStr);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -200,5 +221,87 @@ public class MainActivity extends AppCompatActivity {
         public void setTemperature(double temperature) { this.temperature = temperature; }
         public String getDescription() { return description; }
         public void setDescription(String description) { this.description = description; }
+    }
+
+    private void getLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            startLocationUpdates();
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private void startLocationUpdates() {
+        try {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private final LocationListener locationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(Location location) {
+            if (location != null) {
+                double cur_lat = location.getLatitude();
+                double cur_lon = location.getLongitude();
+                getWeatherData(cur_lat, cur_lon);
+            }
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) { }
+
+        @Override
+        public void onProviderEnabled(String provider) { }
+
+        @Override
+        public void onProviderDisabled(String provider) { }
+    };
+
+    private void getWeatherData(double latitude, double longitude) {
+        String apiKey = "be30d0417182e4188259fd1a1bf395fe"; // 실제 API 키로 교체하세요
+        String url = "https://api.openweathermap.org/data/2.5/weather?lat=" + latitude + "&lon=" + longitude + "&units=metric&appid=" + apiKey + "&lang=kr";
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            String cityName = response.getString("name"); // 지역명 추출
+                            String weather = response.getJSONArray("weather").getJSONObject(0).getString("description");
+                            String temperature = response.getJSONObject("main").getString("temp");
+                            currentLocationTextView.setText("현재 위치 : " + cityName);
+                            currentWeatherTextView.setText("현재 날씨 : " + weather + ", 온도: " + temperature + "°C");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        error.printStackTrace();
+                    }
+                });
+
+        requestQueue.add(jsonObjectRequest);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startLocationUpdates();
+            }
+        }
     }
 }
