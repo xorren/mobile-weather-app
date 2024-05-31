@@ -1,21 +1,55 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".MainActivity" >
+    android:padding="16dp">
 
     <TextView
         android:id="@+id/currentWeather"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="현재날씨 들어갈 자리" />
+        android:text="Current Weather"
+        android:textSize="20sp"
+        android:padding="8dp" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"/>
+    <TextView
+        android:id="@+id/forecast1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Forecast 1"
+        android:textSize="16sp"
+        android:padding="8dp" />
+
+    <TextView
+        android:id="@+id/forecast2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Forecast 2"
+        android:textSize="16sp"
+        android:padding="8dp" />
+
+    <TextView
+        android:id="@+id/forecast3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Forecast 3"
+        android:textSize="16sp"
+        android:padding="8dp" />
+
+    <TextView
+        android:id="@+id/forecast4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Forecast 4"
+        android:textSize="16sp"
+        android:padding="8dp" />
+
+    <TextView
+        android:id="@+id/forecast5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Forecast 5"
+        android:textSize="16sp"
+        android:padding="8dp" />
 </LinearLayout>
