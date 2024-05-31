@@ -3,6 +3,7 @@ package com.example.mobile_weatherapp;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,8 +25,10 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView currentWeather;
-    private TextView forecast1, forecast2, forecast3, forecast4, forecast5;
+    private TextView currentWeather, currentTemperature, location;
+    private ImageView weatherIcon;
+    private TextView forecastDay1, forecastTemp1, forecastDay2, forecastTemp2, forecastDay3, forecastTemp3, forecastDay4, forecastTemp4, forecastDay5, forecastTemp5;
+    private ImageView forecastIcon1, forecastIcon2, forecastIcon3, forecastIcon4, forecastIcon5;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,11 +42,24 @@ public class MainActivity extends AppCompatActivity {
         });
 
         currentWeather = findViewById(R.id.currentWeather);
-        forecast1 = findViewById(R.id.forecast1);
-        forecast2 = findViewById(R.id.forecast2);
-        forecast3 = findViewById(R.id.forecast3);
-        forecast4 = findViewById(R.id.forecast4);
-        forecast5 = findViewById(R.id.forecast5);
+        currentTemperature = findViewById(R.id.currentTemperature);
+        weatherIcon = findViewById(R.id.weatherIcon);
+        location = findViewById(R.id.location);
+        forecastDay1 = findViewById(R.id.forecastDay1);
+        forecastTemp1 = findViewById(R.id.forecastTemp1);
+        forecastIcon1 = findViewById(R.id.forecastIcon1);
+        forecastDay2 = findViewById(R.id.forecastDay2);
+        forecastTemp2 = findViewById(R.id.forecastTemp2);
+        forecastIcon2 = findViewById(R.id.forecastIcon2);
+        forecastDay3 = findViewById(R.id.forecastDay3);
+        forecastTemp3 = findViewById(R.id.forecastTemp3);
+        forecastIcon3 = findViewById(R.id.forecastIcon3);
+        forecastDay4 = findViewById(R.id.forecastDay4);
+        forecastTemp4 = findViewById(R.id.forecastTemp4);
+        forecastIcon4 = findViewById(R.id.forecastIcon4);
+        forecastDay5 = findViewById(R.id.forecastDay5);
+        forecastTemp5 = findViewById(R.id.forecastTemp5);
+        forecastIcon5 = findViewById(R.id.forecastIcon5);
 
         String city = "Seoul,kr";
 
@@ -51,9 +67,9 @@ public class MainActivity extends AppCompatActivity {
         new FetchForecastTask().execute(city);
     }
 
-    private class FetchWeatherTask extends AsyncTask<String, Void, String> {
+    private class FetchWeatherTask extends AsyncTask<String, Void, WeatherData> {
         @Override
-        protected String doInBackground(String... params) {
+        protected WeatherData doInBackground(String... params) {
             String city = params[0];
             try {
                 return lookUpWeather(city);
@@ -64,15 +80,19 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(String weather) {
-            if (weather != null) {
-                currentWeather.setText("현재 날씨 : " + weather);
+        protected void onPostExecute(WeatherData weatherData) {
+            if (weatherData != null) {
+                currentWeather.setText(weatherData.description);
+                currentTemperature.setText(String.format("+%.0f°C", weatherData.temperature));
+                int iconResource = getResources().getIdentifier("ic_" + weatherData.icon, "drawable", getPackageName());
+                weatherIcon.setImageResource(iconResource);
             } else {
                 currentWeather.setText("날씨 데이터를 불러올 수 없습니다.");
             }
         }
 
-        private String lookUpWeather(String city) throws IOException, JSONException {
+
+        private WeatherData lookUpWeather(String city) throws IOException, JSONException {
             String apiKey = "be30d0417182e4188259fd1a1bf395fe"; // Replace with your actual API key
             String urlStr = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&APPID=" + apiKey + "&units=metric&lang=kr";
             URL url = new URL(urlStr);
@@ -93,7 +113,10 @@ public class MainActivity extends AppCompatActivity {
                 urlConnection.disconnect();
                 Log.d("FetchWeatherTask", "Weather data: " + content.toString());
                 JSONObject jsonObject = new JSONObject(content.toString());
-                return jsonObject.getJSONArray("weather").getJSONObject(0).getString("description");
+                String description = jsonObject.getJSONArray("weather").getJSONObject(0).getString("description");
+                double temperature = jsonObject.getJSONObject("main").getDouble("temp");
+                String icon = jsonObject.getJSONArray("weather").getJSONObject(0).getString("icon");
+                return new WeatherData(description, temperature, icon);
             } else {
                 BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getErrorStream()));
                 String inputLine;
@@ -124,17 +147,18 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(List<ForecastModel> forecastList) {
             if (forecastList != null && forecastList.size() >= 5) {
-                forecast1.setText(formatForecast(forecastList.get(0)));
-                forecast2.setText(formatForecast(forecastList.get(1)));
-                forecast3.setText(formatForecast(forecastList.get(2)));
-                forecast4.setText(formatForecast(forecastList.get(3)));
-                forecast5.setText(formatForecast(forecastList.get(4)));
+                updateForecast(forecastList);
             } else {
-                forecast1.setText("예보 데이터를 불러올 수 없습니다.");
-                forecast2.setText("");
-                forecast3.setText("");
-                forecast4.setText("");
-                forecast5.setText("");
+                forecastDay1.setText("예보 데이터를 불러올 수 없습니다.");
+                forecastTemp1.setText("");
+                forecastDay2.setText("");
+                forecastTemp2.setText("");
+                forecastDay3.setText("");
+                forecastTemp3.setText("");
+                forecastDay4.setText("");
+                forecastTemp4.setText("");
+                forecastDay5.setText("");
+                forecastTemp5.setText("");
             }
         }
 
@@ -167,6 +191,7 @@ public class MainActivity extends AppCompatActivity {
                     forecast.setDate(forecastObject.getString("dt_txt"));
                     forecast.setTemperature(forecastObject.getJSONObject("main").getDouble("temp"));
                     forecast.setDescription(forecastObject.getJSONArray("weather").getJSONObject(0).getString("description"));
+                    forecast.setIcon(forecastObject.getJSONArray("weather").getJSONObject(0).getString("icon"));
                     forecastList.add(forecast);
                 }
                 return forecastList;
@@ -184,8 +209,39 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        private String formatForecast(ForecastModel forecast) {
-            return forecast.getDate() + " - " + forecast.getTemperature() + "°C, " + forecast.getDescription();
+        private void updateForecast(List<ForecastModel> forecastList) {
+            setForecastData(forecastList.get(0), forecastDay1, forecastTemp1, forecastIcon1);
+            setForecastData(forecastList.get(1), forecastDay2, forecastTemp2, forecastIcon2);
+            setForecastData(forecastList.get(2), forecastDay3, forecastTemp3, forecastIcon3);
+            setForecastData(forecastList.get(3), forecastDay4, forecastTemp4, forecastIcon4);
+            setForecastData(forecastList.get(4), forecastDay5, forecastTemp5, forecastIcon5);
+        }
+
+        private void setForecastData(ForecastModel forecast, TextView day, TextView temp, ImageView icon) {
+
+            temp.setText(String.format("+%.0f°C", forecast.getTemperature()));
+            int iconResource = getResources().getIdentifier("ic_" + forecast.getIcon(), "drawable", getPackageName());
+            icon.setImageResource(iconResource);
+        }
+
+
+        private String formatDate(String dateStr) {
+            // 날짜 포맷 변환 코드 (필요시 구현)
+            return dateStr;
+        }
+
+    }
+
+
+    private class WeatherData {
+        String description;
+        double temperature;
+        String icon;
+
+        WeatherData(String description, double temperature, String icon) {
+            this.description = description;
+            this.temperature = temperature;
+            this.icon = icon;
         }
     }
 
@@ -193,6 +249,7 @@ public class MainActivity extends AppCompatActivity {
         private String date;
         private double temperature;
         private String description;
+        private String icon;
 
         public String getDate() { return date; }
         public void setDate(String date) { this.date = date; }
@@ -200,5 +257,7 @@ public class MainActivity extends AppCompatActivity {
         public void setTemperature(double temperature) { this.temperature = temperature; }
         public String getDescription() { return description; }
         public void setDescription(String description) { this.description = description; }
+        public String getIcon() { return icon; }
+        public void setIcon(String icon) { this.icon = icon; }
     }
 }
