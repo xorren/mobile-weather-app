@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    android:background="@color/background_color"
+    android:background="#87CEEB"
     tools:context=".MainActivity">
 
     <TextView
@@ -26,7 +26,8 @@
         android:layout_below="@id/location"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp"
-        android:src="@drawable/ic_weather"/>
+        android:src="@drawable/ic_weather"
+        />
 
     <TextView
         android:id="@+id/currentTemperature"
@@ -74,6 +75,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:background="#87CEEB"
             android:layout_margin="8dp">
 
             <ImageView
@@ -86,7 +88,7 @@
                 android:id="@+id/forecastDay1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
+                android:textSize="10sp"
                 android:textColor="@color/secondary_text_color"
                 android:gravity="center"
                 android:text="Day1"/>
@@ -105,6 +107,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="#87CEEB"
             android:orientation="vertical"
             android:layout_margin="8dp">
 
@@ -118,7 +121,7 @@
                 android:id="@+id/forecastDay2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
+                android:textSize="10sp"
                 android:textColor="@color/secondary_text_color"
                 android:gravity="center"
                 android:text="Day2"/>
@@ -136,6 +139,7 @@
 
         <LinearLayout
             android:layout_width="wrap_content"
+            android:background="#87CEEB"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_margin="8dp">
@@ -150,7 +154,7 @@
                 android:id="@+id/forecastDay3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
+                android:textSize="10sp"
                 android:textColor="@color/secondary_text_color"
                 android:gravity="center"
                 android:text="Day3"/>
@@ -169,6 +173,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="#87CEEB"
             android:orientation="vertical"
             android:layout_margin="8dp">
 
@@ -182,7 +187,7 @@
                 android:id="@+id/forecastDay4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
+                android:textSize="10sp"
                 android:textColor="@color/secondary_text_color"
                 android:gravity="center"
                 android:text="Day4"/>
@@ -201,6 +206,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="#87CEEB"
             android:orientation="vertical"
             android:layout_margin="8dp">
 
@@ -214,7 +220,7 @@
                 android:id="@+id/forecastDay5"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
+                android:textSize="10sp"
                 android:textColor="@color/secondary_text_color"
                 android:gravity="center"
                 android:text="Day5"/>

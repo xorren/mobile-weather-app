@@ -1,5 +1,4 @@
 package com.example.mobile_weatherapp;
-
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,14 +21,17 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
-
     private TextView currentWeather, currentTemperature, location;
     private ImageView weatherIcon;
     private TextView forecastDay1, forecastTemp1, forecastDay2, forecastTemp2, forecastDay3, forecastTemp3, forecastDay4, forecastTemp4, forecastDay5, forecastTemp5;
     private ImageView forecastIcon1, forecastIcon2, forecastIcon3, forecastIcon4, forecastIcon5;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -218,20 +220,28 @@ public class MainActivity extends AppCompatActivity {
         }
 
         private void setForecastData(ForecastModel forecast, TextView day, TextView temp, ImageView icon) {
-
+            day.setText(formatDate(forecast.getDate()));
             temp.setText(String.format("+%.0f°C", forecast.getTemperature()));
             int iconResource = getResources().getIdentifier("ic_" + forecast.getIcon(), "drawable", getPackageName());
             icon.setImageResource(iconResource);
         }
 
 
+
+
         private String formatDate(String dateStr) {
-            // 날짜 포맷 변환 코드 (필요시 구현)
-            return dateStr;
+            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            SimpleDateFormat outputFormat = new SimpleDateFormat("MM월 dd일", Locale.getDefault());
+            try {
+                Date date = inputFormat.parse(dateStr);
+                return outputFormat.format(date);
+            } catch (ParseException e) {
+                e.printStackTrace();
+                return dateStr;
+            }
         }
 
     }
-
 
     private class WeatherData {
         String description;
