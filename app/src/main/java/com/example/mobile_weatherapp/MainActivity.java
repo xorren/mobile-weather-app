@@ -99,8 +99,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(AirQualityData airQualityData) {
             if (airQualityData != null) {
-                pm25TextView.setText(String.format("PM2.5(초 미세먼지): %s (%.2f µg/m³)", airQualityData.getPm25Status(), airQualityData.pm25));
-                pm10TextView.setText(String.format("PM10(미세먼지): %s (%.2f µg/m³)", airQualityData.getPm10Status(), airQualityData.pm10));
+                pm25TextView.setText(String.format("PM2.5 (초미세먼지): %s (%.2f µg/m³)", airQualityData.getPm25Status(), airQualityData.pm25));
+                pm10TextView.setText(String.format("PM10 (미세먼지): %s (%.2f µg/m³)", airQualityData.getPm10Status(), airQualityData.pm10));
             } else {
                 pm25TextView.setText("미세먼지 데이터를 불러올 수 없습니다.");
                 pm10TextView.setText("");
@@ -146,6 +146,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
 
 
     private class FetchWeatherTask extends AsyncTask<String, Void, WeatherData> {
@@ -393,13 +394,24 @@ public class MainActivity extends AppCompatActivity {
         }
 
         String getPm25Status() {
-            return pm25 <= 12 ? "좋음" : "안좋음";
+            if (pm25 <= 5) return "완전 좋음";
+            else if (pm25 <= 15) return "좋음";
+            else if (pm25 <= 35) return "보통";
+            else if (pm25 <= 75) return "나쁨";
+            else if (pm25 <= 100) return "완전 나쁨";
+            else return "최악";
         }
 
         String getPm10Status() {
-            return pm10 <= 50 ? "좋음" : "안좋음";
+            if (pm10 <= 15) return "완전 좋음";
+            else if (pm10 <= 30) return "좋음";
+            else if (pm10 <= 50) return "보통";
+            else if (pm10 <= 100) return "나쁨";
+            else if (pm10 <= 150) return "완전 나쁨";
+            else return "최악";
         }
     }
+
 
 
     private class ForecastModel {
