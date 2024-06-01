@@ -39,4 +39,5 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
     implementation("com.android.volley:volley:1.2.1")
     implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation ("com.github.PhilJay:MPAndroidChart:v3.1.0")
 }
