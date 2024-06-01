@@ -505,7 +505,7 @@ public class MainActivity extends AppCompatActivity {
                             String weather = response.getJSONArray("weather").getJSONObject(0).getString("description");
                             String temperature = response.getJSONObject("main").getString("temp");
                             currentLocationTextView.setText("현재 위치 : " + cityName);
-                            currentWeatherTextView.setText("현재 날씨 : " + weather + ", 온도: " + temperature + "°C");
+                            currentWeatherTextView.setText("현재 날씨 : " + weather);
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
