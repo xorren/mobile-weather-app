@@ -49,14 +49,25 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp"/>
 
-    <!-- PM2.5 and PM10 TextViews added here -->
+    <!-- Rain Probability TextView 추가 -->
+    <TextView
+        android:id="@+id/rainProbability"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textColor="@color/secondary_text_color"
+        android:layout_below="@id/currentWeather"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp"
+        android:text="비 올 확률: --%"/>
+
     <TextView
         android:id="@+id/pm25TextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="18sp"
         android:textColor="@color/secondary_text_color"
-        android:layout_below="@id/currentWeather"
+        android:layout_below="@id/rainProbability"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp"
         android:text="PM2.5 (초미세먼지): -- µg/m³"/>
@@ -71,6 +82,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp"
         android:text="PM10 (미세먼지): -- µg/m³"/>
+
 
     <TextView
         android:id="@+id/forecastTitle"
@@ -100,13 +112,15 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="#87CEEB"
-            android:layout_margin="8dp">
+            android:layout_margin="8dp"
+            android:gravity="center_horizontal"> <!-- 중앙 정렬 -->
 
             <ImageView
                 android:id="@+id/forecastIcon1"
                 android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:src="@drawable/ic_weather"/>
+                android:layout_height="54dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_weather" /> <!-- 중앙 정렬 -->
 
             <TextView
                 android:id="@+id/forecastDay1"
@@ -115,32 +129,36 @@
                 android:textSize="10sp"
                 android:textColor="@color/secondary_text_color"
                 android:gravity="center"
+                android:layout_gravity="center"
                 android:text="Day1"/>
 
             <TextView
                 android:id="@+id/forecastTemp1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="16sp"
+                android:textSize="10sp"
                 android:textColor="@color/primary_text_color"
                 android:textStyle="bold"
                 android:gravity="center"
+                android:layout_gravity="center"
                 android:text="+12°C"/>
-
         </LinearLayout>
+
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="#87CEEB"
             android:orientation="vertical"
-            android:layout_margin="8dp">
+            android:layout_margin="8dp"
+            android:gravity="center_horizontal">
 
             <ImageView
                 android:id="@+id/forecastIcon2"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:src="@drawable/ic_weather"/>
+                android:src="@drawable/ic_weather"
+                android:layout_gravity="center"/>
 
             <TextView
                 android:id="@+id/forecastDay2"
@@ -149,17 +167,19 @@
                 android:textSize="10sp"
                 android:textColor="@color/secondary_text_color"
                 android:gravity="center"
-                android:text="Day2"/>
+                android:text="Day2"
+                android:layout_gravity="center"/>
 
             <TextView
                 android:id="@+id/forecastTemp2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="16sp"
+                android:textSize="10sp"
                 android:textColor="@color/primary_text_color"
                 android:textStyle="bold"
                 android:gravity="center"
-                android:text="+12°C"/>
+                android:text="+12°C"
+                android:layout_gravity="center"/>
         </LinearLayout>
 
         <LinearLayout
@@ -167,13 +187,15 @@
             android:background="#87CEEB"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_margin="8dp">
+            android:layout_margin="8dp"
+            android:gravity="center_horizontal">
 
             <ImageView
                 android:id="@+id/forecastIcon3"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:src="@drawable/ic_weather"/>
+                android:src="@drawable/ic_weather"
+                android:layout_gravity="center"/>
 
             <TextView
                 android:id="@+id/forecastDay3"
@@ -188,7 +210,7 @@
                 android:id="@+id/forecastTemp3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="16sp"
+                android:textSize="10sp"
                 android:textColor="@color/primary_text_color"
                 android:textStyle="bold"
                 android:gravity="center"
@@ -200,13 +222,15 @@
             android:layout_height="wrap_content"
             android:background="#87CEEB"
             android:orientation="vertical"
-            android:layout_margin="8dp">
+            android:layout_margin="8dp"
+            android:gravity="center_horizontal">
 
             <ImageView
                 android:id="@+id/forecastIcon4"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:src="@drawable/ic_weather"/>
+                android:src="@drawable/ic_weather"
+                android:layout_gravity="center"/>
 
             <TextView
                 android:id="@+id/forecastDay4"
@@ -221,7 +245,7 @@
                 android:id="@+id/forecastTemp4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="16sp"
+                android:textSize="10sp"
                 android:textColor="@color/primary_text_color"
                 android:textStyle="bold"
                 android:gravity="center"
@@ -233,13 +257,15 @@
             android:layout_height="wrap_content"
             android:background="#87CEEB"
             android:orientation="vertical"
-            android:layout_margin="8dp">
+            android:layout_margin="8dp"
+            android:gravity="center_horizontal">
 
             <ImageView
                 android:id="@+id/forecastIcon5"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:src="@drawable/ic_weather"/>
+                android:src="@drawable/ic_weather"
+                android:layout_gravity="center"/>
 
             <TextView
                 android:id="@+id/forecastDay5"
@@ -254,7 +280,7 @@
                 android:id="@+id/forecastTemp5"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="16sp"
+                android:textSize="10sp"
                 android:textColor="@color/primary_text_color"
                 android:textStyle="bold"
                 android:gravity="center"

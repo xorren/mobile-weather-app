@@ -33,10 +33,9 @@ import java.util.Locale;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import com.github.mikephil.charting.formatter.ValueFormatter;
 
 public class MainActivity extends AppCompatActivity {
-    private TextView currentWeather, currentTemperature, location;
+    private TextView currentWeather, currentTemperature, location, rainProbability;
     private ImageView weatherIcon;
     private TextView forecastDay1, forecastTemp1, forecastDay2, forecastTemp2, forecastDay3, forecastTemp3, forecastDay4, forecastTemp4, forecastDay5, forecastTemp5;
     private ImageView forecastIcon1, forecastIcon2, forecastIcon3, forecastIcon4, forecastIcon5;
@@ -58,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
         currentTemperature = findViewById(R.id.currentTemperature);
         weatherIcon = findViewById(R.id.weatherIcon);
         location = findViewById(R.id.location);
+        rainProbability = findViewById(R.id.rainProbability);
         forecastDay1 = findViewById(R.id.forecastDay1);
         forecastTemp1 = findViewById(R.id.forecastTemp1);
         forecastIcon1 = findViewById(R.id.forecastIcon1);
@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         pm10TextView = findViewById(R.id.pm10TextView);
         lineChart = findViewById(R.id.lineChart);
 
-        String city = "Seoul,kr";
+        String city = "Seoul, KR";
 
         new FetchWeatherTask().execute(city);
         new FetchForecastTask().execute(city);
@@ -147,7 +147,112 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private class FetchForecastTask extends AsyncTask<String, Void, List<ForecastModel>> {
+        @Override
+        protected List<ForecastModel> doInBackground(String... params) {
+            String city = params[0];
+            try {
+                return lookUpForecast(city);
+            } catch (IOException | JSONException e) {
+                Log.e("FetchForecastTask", "Error fetching forecast data");
+                return null;
+            }
+        }
 
+        @Override
+        protected void onPostExecute(List<ForecastModel> forecastList) {
+            if (forecastList != null && forecastList.size() >= 5) {
+                updateForecast(forecastList);
+            } else {
+                forecastDay1.setText("예보 데이터를 불러올 수 없습니다.");
+                forecastTemp1.setText("");
+                forecastDay2.setText("");
+                forecastTemp2.setText("");
+                forecastDay3.setText("");
+                forecastTemp3.setText("");
+                forecastDay4.setText("");
+                forecastTemp4.setText("");
+                forecastDay5.setText("");
+                forecastTemp5.setText("");
+            }
+        }
+
+        private List<ForecastModel> lookUpForecast(String city) throws IOException, JSONException {
+            String apiKey = "be30d0417182e4188259fd1a1bf395fe"; // Replace with your actual API key
+            String urlStr = "https://api.openweathermap.org/data/2.5/forecast?q=" + city + "&appid=" + apiKey + "&units=metric&lang=kr";
+            URL url = new URL(urlStr);
+            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setRequestMethod("GET");
+
+            int responseCode = urlConnection.getResponseCode();
+            Log.d("FetchForecastTask", "Response Code: " + responseCode);
+
+            if (responseCode == 200) { // HTTP OK
+                BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+                String inputLine;
+                StringBuilder content = new StringBuilder();
+                while ((inputLine = in.readLine()) != null) {
+                    content.append(inputLine);
+                }
+                in.close();
+                urlConnection.disconnect();
+                Log.d("FetchForecastTask", "Forecast data: " + content.toString());
+                JSONObject jsonObject = new JSONObject(content.toString());
+                List<ForecastModel> forecastList = new ArrayList<>();
+                JSONArray list = jsonObject.getJSONArray("list");
+                for (int i = 0; i < list.length(); i += 8) { // 하루 간격으로 데이터 선택
+                    JSONObject forecastObject = list.getJSONObject(i);
+                    ForecastModel forecast = new ForecastModel();
+                    forecast.setDate(forecastObject.getString("dt_txt"));
+                    forecast.setTemperature(forecastObject.getJSONObject("main").getDouble("temp"));
+                    forecast.setDescription(forecastObject.getJSONArray("weather").getJSONObject(0).getString("description"));
+                    forecast.setIcon(forecastObject.getJSONArray("weather").getJSONObject(0).getString("icon"));
+                    forecast.setRainProbability(forecastObject.has("rain") ? forecastObject.getJSONObject("rain").optDouble("3h", 0) * 100 : 0);
+                    forecastList.add(forecast);
+                }
+                return forecastList;
+            } else {
+                BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getErrorStream()));
+                String inputLine;
+                StringBuilder content = new StringBuilder();
+                while ((inputLine = in.readLine()) != null) {
+                    content.append(inputLine);
+                }
+                in.close();
+                urlConnection.disconnect();
+                Log.e("FetchForecastTask", "Error response: " + content.toString());
+                return null;
+            }
+        }
+
+        private void updateForecast(List<ForecastModel> forecastList) {
+            setForecastData(forecastList.get(0), forecastDay1, forecastTemp1, forecastIcon1);
+            setForecastData(forecastList.get(1), forecastDay2, forecastTemp2, forecastIcon2);
+            setForecastData(forecastList.get(2), forecastDay3, forecastTemp3, forecastIcon3);
+            setForecastData(forecastList.get(3), forecastDay4, forecastTemp4, forecastIcon4);
+            setForecastData(forecastList.get(4), forecastDay5, forecastTemp5, forecastIcon5);
+            setupChart(forecastList); // 그래프 설정
+        }
+
+        private void setForecastData(ForecastModel forecast, TextView day, TextView temp, ImageView icon) {
+            day.setText(formatDate(forecast.getDate()));
+            temp.setText(String.format("+%.0f°C \n(비 올 확률: %.0f%%)", forecast.getTemperature(), forecast.getRainProbability()));
+            int iconResource = getResources().getIdentifier("ic_" + forecast.getIcon(), "drawable", getPackageName());
+            icon.setImageResource(iconResource);
+        }
+
+        private String formatDate(String dateStr) {
+            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            SimpleDateFormat outputFormat = new SimpleDateFormat("MM월 dd일", Locale.getDefault());
+            try {
+                Date date = inputFormat.parse(dateStr);
+                return outputFormat.format(date);
+            } catch (ParseException e) {
+                e.printStackTrace();
+                return dateStr;
+            }
+        }
+    }
 
     private class FetchWeatherTask extends AsyncTask<String, Void, WeatherData> {
         @Override
@@ -166,6 +271,7 @@ public class MainActivity extends AppCompatActivity {
             if (weatherData != null) {
                 currentWeather.setText(weatherData.description);
                 currentTemperature.setText(String.format("+%.0f°C", weatherData.temperature));
+                rainProbability.setText(String.format("비 올 확률: %.0f%%", weatherData.rainProbability));
                 int iconResource = getResources().getIdentifier("ic_" + weatherData.icon, "drawable", getPackageName());
                 weatherIcon.setImageResource(iconResource);
             } else {
@@ -197,7 +303,8 @@ public class MainActivity extends AppCompatActivity {
                 String description = jsonObject.getJSONArray("weather").getJSONObject(0).getString("description");
                 double temperature = jsonObject.getJSONObject("main").getDouble("temp");
                 String icon = jsonObject.getJSONArray("weather").getJSONObject(0).getString("icon");
-                return new WeatherData(description, temperature, icon);
+                double rainProbability = jsonObject.has("rain") ? jsonObject.getJSONObject("rain").optDouble("1h", 0) * 100 : 0;
+                return new WeatherData(description, temperature, icon, rainProbability);
             } else {
                 BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getErrorStream()));
                 String inputLine;
@@ -213,163 +320,39 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class FetchForecastTask extends AsyncTask<String, Void, List<ForecastModel>> {
-        @Override
-        protected List<ForecastModel> doInBackground(String... params) {
-            String city = params[0];
-            try {
-                return lookUpForecast(city);
-            } catch (IOException | JSONException e) {
-                Log.e("FetchForecastTask", "Error fetching forecast data", e);
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(List<ForecastModel> forecastList) {
-            if (forecastList != null && forecastList.size() >= 5) {
-                updateForecast(forecastList);
-                setupChart(forecastList); // 그래프 설정 기능 추가
-            } else {
-                // 에러 처리
-                forecastDay1.setText("예보 데이터를 불러올 수 없습니다.");
-                forecastTemp1.setText("");
-                forecastIcon1.setImageResource(R.drawable.ic_error); // 기본 에러 아이콘 설정
-                forecastDay2.setText("");
-                forecastTemp2.setText("");
-                forecastIcon2.setImageResource(R.drawable.ic_error);
-                forecastDay3.setText("");
-                forecastTemp3.setText("");
-                forecastIcon3.setImageResource(R.drawable.ic_error);
-                forecastDay4.setText("");
-                forecastTemp4.setText("");
-                forecastIcon4.setImageResource(R.drawable.ic_error);
-                forecastDay5.setText("");
-                forecastTemp5.setText("");
-                forecastIcon5.setImageResource(R.drawable.ic_error);
-
-                // 그래프 초기화
-                lineChart.clear();
-            }
-        }
-
-        private List<ForecastModel> lookUpForecast(String city) throws IOException, JSONException {
-            String apiKey = "be30d0417182e4188259fd1a1bf395fe"; // Replace with your actual API key
-            String urlStr = "https://api.openweathermap.org/data/2.5/forecast?q=" + city + "&appid=" + apiKey + "&units=metric&lang=kr";
-            URL url = new URL(urlStr);
-            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setRequestMethod("GET");
-
-            int responseCode = urlConnection.getResponseCode();
-            Log.d("FetchForecastTask", "Response Code: " + responseCode);
-
-            if (responseCode == 200) { // HTTP OK
-                BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-                String inputLine;
-                StringBuilder content = new StringBuilder();
-                while ((inputLine = in.readLine()) != null) {
-                    content.append(inputLine);
-                }
-                in.close();
-                urlConnection.disconnect();
-                Log.d("FetchForecastTask", "Forecast data: " + content.toString());
-                JSONObject jsonObject = new JSONObject(content.toString());
-                List<ForecastModel> forecastList = new ArrayList<>();
-                JSONArray list = jsonObject.getJSONArray("list");
-                for (int i = 0; i < list.length(); i += 8) { // 하루 간격으로 데이터 선택
-                    JSONObject forecastObject = list.getJSONObject(i);
-
-                    ForecastModel forecast = new ForecastModel();
-                    forecast.setDate(forecastObject.getString("dt_txt"));
-                    forecast.setTemperature(forecastObject.getJSONObject("main").getDouble("temp"));
-                    forecast.setDescription(forecastObject.getJSONArray("weather").getJSONObject(0).getString("description"));
-                    forecast.setIcon(forecastObject.getJSONArray("weather").getJSONObject(0).getString("icon"));
-                    forecastList.add(forecast);
-                }
-                return forecastList;
-            } else {
-                BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getErrorStream()));
-                String inputLine;
-                StringBuilder content = new StringBuilder();
-                while ((inputLine = in.readLine()) != null) {
-                    content.append(inputLine);
-                }
-                in.close();
-                urlConnection.disconnect();
-                Log.e("FetchForecastTask", "Error response: " + content.toString());
-                return null;
-            }
-        }
-
-        private void setupChart(List<ForecastModel> forecastList) {
-            List<Entry> entries = new ArrayList<>();
-            List<String> dates = new ArrayList<>();
-            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-            SimpleDateFormat outputFormat = new SimpleDateFormat("MM월 dd일", Locale.getDefault());
-
-            for (int i = 0; i < forecastList.size(); i++) {
-                ForecastModel forecast = forecastList.get(i);
-                entries.add(new Entry(i, (float) forecast.getTemperature()));
-                try {
-                    Date date = inputFormat.parse(forecast.getDate());
-                    dates.add(outputFormat.format(date));
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            LineDataSet dataSet = new LineDataSet(entries, "Temperature");
-            LineData lineData = new LineData(dataSet);
-            lineChart.setData(lineData);
-
-            XAxis xAxis = lineChart.getXAxis();
-            xAxis.setValueFormatter(new DateValueFormatter(dates));
-            xAxis.setGranularity(1f); // 최소 간격을 설정하여 날짜가 올바르게 표시되도록 함
-            xAxis.setPosition(XAxis.XAxisPosition.BOTTOM); // X축을 아래에 표시
-
-            lineChart.invalidate(); // refresh
-        }
-
-    }
-
-    private void updateForecast(List<ForecastModel> forecastList) {
-        setForecastData(forecastList.get(0), forecastDay1, forecastTemp1, forecastIcon1);
-        setForecastData(forecastList.get(1), forecastDay2, forecastTemp2, forecastIcon2);
-        setForecastData(forecastList.get(2), forecastDay3, forecastTemp3, forecastIcon3);
-        setForecastData(forecastList.get(3), forecastDay4, forecastTemp4, forecastIcon4);
-        setForecastData(forecastList.get(4), forecastDay5, forecastTemp5, forecastIcon5);
-    }
-
-    private void setForecastData(ForecastModel forecast, TextView day, TextView temp, ImageView icon) {
-        day.setText(formatDate(forecast.getDate()));
-        temp.setText(String.format("+%.0f°C", forecast.getTemperature()));
-        int iconResource = getResources().getIdentifier("ic_" + forecast.getIcon(), "drawable", getPackageName());
-        icon.setImageResource(iconResource);
-    }
-
-    private String formatDate(String dateStr) {
-        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-        SimpleDateFormat outputFormat = new SimpleDateFormat("MM월 dd일", Locale.getDefault());
-        try {
-            Date date = inputFormat.parse(dateStr);
-            return outputFormat.format(date);
-        } catch (ParseException e) {
-            e.printStackTrace();
-            return dateStr;
-        }
-    }
-
     private class WeatherData {
         String description;
         double temperature;
         String icon;
+        double rainProbability;
 
-        WeatherData(String description, double temperature, String icon) {
+        WeatherData(String description, double temperature, String icon, double rainProbability) {
             this.description = description;
             this.temperature = temperature;
             this.icon = icon;
+            this.rainProbability = rainProbability;
         }
     }
+
+    private class ForecastModel {
+        private String date;
+        private double temperature;
+        private String description;
+        private String icon;
+        private double rainProbability;
+
+        public String getDate() { return date; }
+        public void setDate(String date) { this.date = date; }
+        public double getTemperature() { return temperature; }
+        public void setTemperature(double temperature) { this.temperature = temperature; }
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
+        public String getIcon() { return icon; }
+        public void setIcon(String icon) { this.icon = icon; }
+        public double getRainProbability() { return rainProbability; }
+        public void setRainProbability(double rainProbability) { this.rainProbability = rainProbability; }
+    }
+
     public class DateValueFormatter extends ValueFormatter {
         private final List<String> dates;
 
@@ -412,21 +395,36 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void setupChart(List<ForecastModel> forecastList) {
+        List<Entry> entries = new ArrayList<>();
+        List<String> dates = new ArrayList<>();
 
+        for (int i = 0; i < forecastList.size(); i++) {
+            ForecastModel forecast = forecastList.get(i);
+            entries.add(new Entry(i, (float) forecast.getTemperature()));
+            dates.add(formatDateForChart(forecast.getDate()));
+        }
 
-    private class ForecastModel {
-        private String date;
-        private double temperature;
-        private String description;
-        private String icon;
+        LineDataSet dataSet = new LineDataSet(entries, "Temperature");
+        LineData lineData = new LineData(dataSet);
+        lineChart.setData(lineData);
 
-        public String getDate() { return date; }
-        public void setDate(String date) { this.date = date; }
-        public double getTemperature() { return temperature; }
-        public void setTemperature(double temperature) { this.temperature = temperature; }
-        public String getDescription() { return description; }
-        public void setDescription(String description) { this.description = description; }
-        public String getIcon() { return icon; }
-        public void setIcon(String icon) { this.icon = icon; }
+        XAxis xAxis = lineChart.getXAxis();
+        xAxis.setValueFormatter(new DateValueFormatter(dates));
+        xAxis.setGranularity(1f);
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        lineChart.invalidate(); // refresh
+    }
+
+    private String formatDateForChart(String dateStr) {
+        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        SimpleDateFormat outputFormat = new SimpleDateFormat("MM/dd", Locale.getDefault());
+        try {
+            Date date = inputFormat.parse(dateStr);
+            return outputFormat.format(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return dateStr;
+        }
     }
 }
