@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView weatherIcon;
     private TextView forecastDay1, forecastTemp1, forecastDay2, forecastTemp2, forecastDay3, forecastTemp3, forecastDay4, forecastTemp4, forecastDay5, forecastTemp5;
     private ImageView forecastIcon1, forecastIcon2, forecastIcon3, forecastIcon4, forecastIcon5;
+    private TextView pm25TextView, pm10TextView;
     private LineChart lineChart;
 
     @Override
@@ -72,13 +73,80 @@ public class MainActivity extends AppCompatActivity {
         forecastDay5 = findViewById(R.id.forecastDay5);
         forecastTemp5 = findViewById(R.id.forecastTemp5);
         forecastIcon5 = findViewById(R.id.forecastIcon5);
+        pm25TextView = findViewById(R.id.pm25TextView);
+        pm10TextView = findViewById(R.id.pm10TextView);
         lineChart = findViewById(R.id.lineChart);
 
         String city = "Seoul,kr";
 
         new FetchWeatherTask().execute(city);
         new FetchForecastTask().execute(city);
+        new FetchAirQualityTask().execute(city);
     }
+
+    private class FetchAirQualityTask extends AsyncTask<String, Void, AirQualityData> {
+        @Override
+        protected AirQualityData doInBackground(String... params) {
+            String city = params[0];
+            try {
+                return lookUpAirQuality(city);
+            } catch (IOException | JSONException e) {
+                Log.e("FetchAirQualityTask", "Error fetching air quality data", e);
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(AirQualityData airQualityData) {
+            if (airQualityData != null) {
+                pm25TextView.setText(String.format("PM2.5(초 미세먼지): %s (%.2f µg/m³)", airQualityData.getPm25Status(), airQualityData.pm25));
+                pm10TextView.setText(String.format("PM10(미세먼지): %s (%.2f µg/m³)", airQualityData.getPm10Status(), airQualityData.pm10));
+            } else {
+                pm25TextView.setText("미세먼지 데이터를 불러올 수 없습니다.");
+                pm10TextView.setText("");
+            }
+        }
+
+        private AirQualityData lookUpAirQuality(String city) throws IOException, JSONException {
+            String apiKey = "be30d0417182e4188259fd1a1bf395fe"; // Replace with your actual API key
+            String urlStr = "https://api.openweathermap.org/data/2.5/air_pollution?lat=37.5665&lon=126.9780&appid=" + apiKey;
+            URL url = new URL(urlStr);
+            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setRequestMethod("GET");
+
+            int responseCode = urlConnection.getResponseCode();
+            Log.d("FetchAirQualityTask", "Response Code: " + responseCode);
+
+            if (responseCode == 200) { // HTTP OK
+                BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+                String inputLine;
+                StringBuilder content = new StringBuilder();
+                while ((inputLine = in.readLine()) != null) {
+                    content.append(inputLine);
+                }
+                in.close();
+                urlConnection.disconnect();
+                Log.d("FetchAirQualityTask", "Air quality data: " + content.toString());
+                JSONObject jsonObject = new JSONObject(content.toString());
+                JSONObject main = jsonObject.getJSONArray("list").getJSONObject(0).getJSONObject("components");
+                double pm25 = main.getDouble("pm2_5");
+                double pm10 = main.getDouble("pm10");
+                return new AirQualityData(pm25, pm10);
+            } else {
+                BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getErrorStream()));
+                String inputLine;
+                StringBuilder content = new StringBuilder();
+                while ((inputLine = in.readLine()) != null) {
+                    content.append(inputLine);
+                }
+                in.close();
+                urlConnection.disconnect();
+                Log.e("FetchAirQualityTask", "Error response: " + content.toString());
+                return null;
+            }
+        }
+    }
+
 
     private class FetchWeatherTask extends AsyncTask<String, Void, WeatherData> {
         @Override
@@ -314,6 +382,25 @@ public class MainActivity extends AppCompatActivity {
             return dates.get(index);
         }
     }
+
+    private class AirQualityData {
+        double pm25;
+        double pm10;
+
+        AirQualityData(double pm25, double pm10) {
+            this.pm25 = pm25;
+            this.pm10 = pm10;
+        }
+
+        String getPm25Status() {
+            return pm25 <= 12 ? "좋음" : "안좋음";
+        }
+
+        String getPm10Status() {
+            return pm10 <= 50 ? "좋음" : "안좋음";
+        }
+    }
+
 
     private class ForecastModel {
         private String date;

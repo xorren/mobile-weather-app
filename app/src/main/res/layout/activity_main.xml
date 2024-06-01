@@ -49,6 +49,29 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp"/>
 
+    <!-- PM2.5 and PM10 TextViews added here -->
+    <TextView
+        android:id="@+id/pm25TextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textColor="@color/secondary_text_color"
+        android:layout_below="@id/currentWeather"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp"
+        android:text="PM2.5 (초미세먼지): -- µg/m³"/>
+
+    <TextView
+        android:id="@+id/pm10TextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textColor="@color/secondary_text_color"
+        android:layout_below="@id/pm25TextView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp"
+        android:text="PM10 (미세먼지): -- µg/m³"/>
+
     <TextView
         android:id="@+id/forecastTitle"
         android:layout_width="wrap_content"
@@ -56,10 +79,12 @@
         android:textSize="20sp"
         android:textColor="@color/primary_text_color"
         android:textStyle="bold"
-        android:layout_below="@id/currentWeather"
+        android:layout_below="@id/pm10TextView"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="24dp"
         android:text="5일간의 예보"/>
+
+
 
     <LinearLayout
         android:id="@+id/forecastContainer"
@@ -101,6 +126,7 @@
                 android:textStyle="bold"
                 android:gravity="center"
                 android:text="+12°C"/>
+
         </LinearLayout>
 
         <LinearLayout
