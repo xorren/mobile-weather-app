@@ -3,6 +3,8 @@ package com.example.mobile_weatherapp;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -24,7 +26,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -41,12 +42,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -55,14 +56,19 @@ public class MainActivity extends AppCompatActivity {
     private TextView currentLocationTextView;
     private TextView currentWeatherTextView;
     private RequestQueue requestQueue;
-    
-    private TextView forecast1, forecast2, forecast3, forecast4, forecast5;
-    private TextView currentWeather, currentTemperature, location, rainProbability;
+    private Geocoder geocoder;
+    private TextView currentWeather;
+    private TextView currentTemperature;
+    private TextView rainProbability;
     private ImageView weatherIcon;
     private TextView forecastDay1, forecastTemp1, forecastDay2, forecastTemp2, forecastDay3, forecastTemp3, forecastDay4, forecastTemp4, forecastDay5, forecastTemp5;
     private ImageView forecastIcon1, forecastIcon2, forecastIcon3, forecastIcon4, forecastIcon5;
     private TextView pm25TextView, pm10TextView;
     private LineChart lineChart;
+
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,11 +81,10 @@ public class MainActivity extends AppCompatActivity {
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         getLocationPermission();
-
+        geocoder = new Geocoder(this);
         currentWeather = findViewById(R.id.currentWeather);
         currentTemperature = findViewById(R.id.currentTemperature);
         weatherIcon = findViewById(R.id.weatherIcon);
-        location = findViewById(R.id.location);
         rainProbability = findViewById(R.id.rainProbability);
         forecastDay1 = findViewById(R.id.forecastDay1);
         forecastTemp1 = findViewById(R.id.forecastTemp1);
@@ -99,8 +104,7 @@ public class MainActivity extends AppCompatActivity {
         pm25TextView = findViewById(R.id.pm25TextView);
         pm10TextView = findViewById(R.id.pm10TextView);
         lineChart = findViewById(R.id.lineChart);
-
-        String city = "Seoul, KR";
+        String city = "서울";
 
         new FetchWeatherTask().execute(city);
         new FetchForecastTask().execute(city);
@@ -132,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
 
         private AirQualityData lookUpAirQuality(String city) throws IOException, JSONException {
             String apiKey = "be30d0417182e4188259fd1a1bf395fe"; // Replace with your actual API key
-            String urlStr = "https://api.openweathermap.org/data/2.5/air_pollution?lat=37.5665&lon=126.9780&appid=" + apiKey;
+            String urlStr = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&APPID=" + apiKey + "&units=metric&lang=kr";
             URL url = new URL(urlStr);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
@@ -479,6 +483,7 @@ public class MainActivity extends AppCompatActivity {
                 double cur_lat = location.getLatitude();
                 double cur_lon = location.getLongitude();
                 getWeatherData(cur_lat, cur_lon);
+                getCityName(cur_lat, cur_lon); // Add this line to get city name
             }
         }
 
@@ -492,6 +497,28 @@ public class MainActivity extends AppCompatActivity {
         public void onProviderDisabled(String provider) { }
     };
 
+    private void getCityName(double latitude, double longitude) {
+        List<Address> addresses;
+        try {
+            addresses = geocoder.getFromLocation(latitude, longitude, 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                String cityName = addresses.get(0).getAdminArea(); // 주/도 이름을 가져옵니다.
+                if (cityName == null || cityName.isEmpty()) {
+                    cityName = addresses.get(0).getLocality(); // 도시 이름을 가져옵니다.
+                }
+                if (cityName == null || cityName.isEmpty()) {
+                    cityName = addresses.get(0).getThoroughfare(); // 도로 이름을 가져옵니다.
+                }
+                currentLocationTextView.setText(cityName != null ? cityName : "지역명을 가져올 수 없습니다.");
+            } else {
+                currentLocationTextView.setText("지역명을 가져올 수 없습니다.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            currentLocationTextView.setText("지역명을 가져올 수 없습니다.");
+        }
+    }
+
     private void getWeatherData(double latitude, double longitude) {
         String apiKey = "be30d0417182e4188259fd1a1bf395fe"; // 실제 API 키로 교체하세요
         String url = "https://api.openweathermap.org/data/2.5/weather?lat=" + latitude + "&lon=" + longitude + "&units=metric&appid=" + apiKey + "&lang=kr";
@@ -501,11 +528,10 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            String cityName = response.getString("name"); // 지역명 추출
                             String weather = response.getJSONArray("weather").getJSONObject(0).getString("description");
                             String temperature = response.getJSONObject("main").getString("temp");
-                            currentLocationTextView.setText("현재 위치 : " + cityName);
                             currentWeatherTextView.setText("현재 날씨 : " + weather);
+                            currentTemperature.setText(String.format("+%.0f°C", Double.parseDouble(temperature))); // Update this line to set temperature
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -532,4 +558,5 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
 }
