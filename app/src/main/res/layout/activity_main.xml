@@ -42,14 +42,10 @@
         android:id="@+id/currentLocation"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-
-        android:textSize="24sp"
-        android:textColor="@color/primary_text_color"
-        android:textStyle="bold"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
+        android:padding="8dp"
         android:text="현재 위치 : "
-        android:padding="8dp" />
+        android:textSize="20sp" />
+
     <TextView
         android:id="@+id/currentWeather"
         android:layout_width="wrap_content"
