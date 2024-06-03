@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
         pm25TextView = findViewById(R.id.pm25TextView);
         pm10TextView = findViewById(R.id.pm10TextView);
         lineChart = findViewById(R.id.lineChart);
-        String city = "서울";
+        String city = "Seoul, KR";
 
         new FetchWeatherTask().execute(city);
         new FetchForecastTask().execute(city);
