@@ -542,10 +542,9 @@ public class MainActivity extends AppCompatActivity {
                         error.printStackTrace();
                     }
                 });
-
         requestQueue.add(jsonObjectRequest);
     }
-
+//흠...
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
