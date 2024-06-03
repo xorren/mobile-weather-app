@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
 
         private AirQualityData lookUpAirQuality(String city) throws IOException, JSONException {
             String apiKey = "be30d0417182e4188259fd1a1bf395fe"; // Replace with your actual API key
-            String urlStr = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&APPID=" + apiKey + "&units=metric&lang=kr";
+            String urlStr = "https://api.openweathermap.org/data/2.5/air_pollution?lat=37.5665&lon=126.9780&appid=" + apiKey;
             URL url = new URL(urlStr);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
