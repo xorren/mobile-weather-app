@@ -19,3 +19,9 @@ It fetches weather data using a Weather API and uses GPS to detect the user’s 
 - GPS integration for automatic location detection  
 - Displays current temperature, humidity, and weather conditions  
 - Responsive design for mobile devices
+
+<br>
+
+## Preview
+
+<img width="1440" height="3088" alt="image" src="https://github.com/user-attachments/assets/406adbe2-64f5-4b59-9cc6-255cb2779dc4" />
