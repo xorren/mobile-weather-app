@@ -53,7 +53,6 @@ It fetches weather data using a Weather API and uses GPS to detect the user’s 
 ## Acknowledgements / 참고 자료
 
 - [OpenWeatherMap API Docs](https://openweathermap.org/api)
-- [Android Developers Documentation](https://developer.android.com/docs)
 - [공공데이터포털 기상 API 문서](https://www.data.go.kr/)
 
 <br>
