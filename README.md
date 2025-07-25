@@ -50,7 +50,7 @@ It fetches weather data using a Weather API and uses GPS to detect the user’s 
 
 <br>
 
-## Acknowledgements / 참고 자료
+## References / 참고 자료
 
 - [OpenWeatherMap API Docs](https://openweathermap.org/api)
 - [공공데이터포털 기상 API 문서](https://www.data.go.kr/)
