@@ -10,10 +10,10 @@
 ## About the Project / 프로젝트 소개
 
 This project is a real-time weather application developed for a university course.  
-이 프로젝트는 대학교 수업 과제로 개발된 실시간 날씨 애플리케이션입니다.
+이 프로젝트는 **모바일 프로그래밍 과목의 과제**로 개발된 실시간 날씨 애플리케이션입니다.
 
 It fetches weather data using a Weather API and uses GPS to detect the user’s current location automatically.  
-날씨 API를 통해 실시간 데이터를 가져오며, GPS를 이용해 사용자의 현재 위치를 자동으로 감지합니다.
+**날씨 API**를 통해 실시간 데이터를 가져오며, **GPS를 이용**해 사용자의 현재 위치를 자동으로 감지합니다.
 
 <br>
 
