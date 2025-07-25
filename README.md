@@ -17,6 +17,20 @@ It fetches weather data using a Weather API and uses GPS to detect the user’s 
 
 <br>
 
+## Tech Stack / 기술 스택
+
+- **Development Environment / 개발 환경**  
+  - Android Studio
+
+- **Programming Language / 프로그래밍 언어**  
+  - Java
+
+- **APIs / 사용 API**  
+  - OpenWeatherMap API – 실시간 날씨 데이터 수집용 [(openweathermap.org)](https://openweathermap.org/)
+  - 공공데이터포털 기상 API – 테스트 및 비교용 ([data.go.kr](https://www.data.go.kr/))
+
+<br>
+
 ## Features / 주요 기능
 
 - Uses Weather API to fetch real-time weather data  
@@ -33,20 +47,6 @@ It fetches weather data using a Weather API and uses GPS to detect the user’s 
 ## Preview App / 앱 미리보기
 
 <img width="1440" height="3088" alt="image" src="https://github.com/user-attachments/assets/406adbe2-64f5-4b59-9cc6-255cb2779dc4" />
-
-<br>
-
-## Tech Stack / 기술 스택
-
-- **Development Environment / 개발 환경**  
-  - Android Studio
-
-- **Programming Language / 프로그래밍 언어**  
-  - Java
-
-- **APIs / 사용 API**  
-  - OpenWeatherMap API – 실시간 날씨 데이터 수집용 [(openweathermap.org)](https://openweathermap.org/)
-  - 공공데이터포털 기상 API – 테스트 및 비교용 ([data.go.kr](https://www.data.go.kr/))
 
 <br>
 
