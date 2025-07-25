@@ -45,7 +45,7 @@ It fetches weather data using a Weather API and uses GPS to detect the user’s 
   - Java
 
 - **APIs / 사용 API**  
-  - [OpenWeatherMap API](https://openweathermap.org/) – 실시간 날씨 데이터 수집용  
+  - OpenWeatherMap API – 실시간 날씨 데이터 수집용 [openweathermap.org](https://openweathermap.org/)
   - 공공데이터포털 기상 API – 테스트 및 비교용 ([data.go.kr](https://www.data.go.kr/))
 
 <br>
